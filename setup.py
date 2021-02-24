@@ -6,6 +6,7 @@ setup(
     py_modules=['corax'],
     install_requires=[
         'Click',
+        'Request'
     ],
     entry_points='''
         [console_scripts]
