@@ -1,25 +1,72 @@
+import base64
+import urllib.parse
 import click
 import requests
-import urllib.parse
-import base64
 
 
+# Create the toplevel command group
 @click.group()
+@click.version_option()
 def cli():
+    """A SOC Analyst Command Line Tool.
+
+    corax is a CLI tool aimed at helping SOC Analysts
+    quickly get information they need about
+    observables and other artifacts related to
+    triaging and investigating secuirty events and
+    alerts.
+    """
     pass
 
 
+# Add command for sanitizing URLs
 @cli.command()
 @click.argument('url')
 def sanitize(url):
+    """Sanitizes provided URLs.
+
+    Provide a URL as the command argument and
+    corax will rewrite the string in a format
+    safe for use in applications that auto create
+    hyperlinks from URLS (email and IM clients, etc.)
+    """
     no_scheme = url.replace('http', 'hxxp')
     no_domains = no_scheme.replace('.', '[.]')
     click.echo('Sanitized URL: ', nl=False)
     click.secho(no_domains, fg='green')
 
 
+# Add command for expanding URL shortener URLs
+@cli.command('unshorten')
+@click.argument('short_url')
+def decode_unshorten(short_url):
+    """Expands URL shortener URLs.
+
+    API limit of 10 requests/hour for novel URLs,
+    however, previously unshortened URLs have no
+    API limit.
+    """
+    response = requests.get(f'https://unshorten.me/json/{short_url}')
+    resolved_url = response.json()['resolved_url']
+    usage_count = response.json()['usage_count']
+    click.echo('Unshortened URL: ', nl=False)
+    click.secho(resolved_url, fg='green')
+    if usage_count > 0:
+        click.secho(f'Current usage: {usage_count}. Cannot exceed 10/hour')
+    elif usage_count >= 7:
+        click.secho(f'WARNING: Usage count at {usage_count}', fg='orange')
+    elif usage_count > 10:
+        click.secho(f'Usage count at {usage_count}. Usage Exceeded. Wait 60 minutes', fg='red')
+
+# Add decoder command group with subcommands
 @click.group()
 def decode():
+    """Parent command for actioning decode operations.
+
+    corax can be used to decode multiple types of
+    encoding schemes like Proofpoint TAP encoded
+    URLs, base64 encoded strings, URL encoding, etc.
+    """
     pass
 
 
@@ -53,3 +100,6 @@ def decode_base64(base64_string):
     decoded_base64 = str(base64.b64decode(base64_string), 'utf-8')
     click.echo('Decoded String: ', nl=False)
     click.secho(decoded_base64, fg='green')
+
+
+
