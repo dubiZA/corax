@@ -1,8 +1,13 @@
 import base64
+import os
 import urllib.parse
 import click
 import requests
 
+
+APP_NAME = 'corax'
+CONFIG_FILE = 'config.yaml'
+CONFIG_PATH = click.get_app_dir(APP_NAME)
 
 # Create the toplevel command group
 @click.group()
@@ -17,6 +22,41 @@ def cli():
     alerts.
     """
     pass
+
+
+# Add command to allow configuration of corax
+@cli.command('config')
+@click.option('--virustotal', '-v', help='VirusTotal API key.')
+@click.option('--abuseip', '-a', help='AbuseIPDB API key.')
+@click.option('--urlscan', '-u', help='URLScan.io API key.')
+@click.option('--hibp', '-h', help='HaveIBeenPwned API key.')
+@click.option('--emailrep', '-e', help='EmailRep.io API key.')
+def configure_corax(**kwargs):
+    """Configure corax.
+
+    Several corax utilities require API keys or
+    other configurations to function correctly. Invoking
+    corax config enables configurations to be set.
+    """
+    if kwargs['virustotal']:
+        pass
+    elif kwargs['abuseip']:
+        pass
+    elif kwargs['urlscan']:
+        pass
+    elif kwargs['hibp']:
+        pass
+    elif kwargs['emailrep']:
+        pass
+    else:
+        if not os.path.isfile(f'{CONFIG_PATH}/{CONFIG_FILE}'):
+            click.secho(f'{CONFIG_PATH}/{CONFIG_FILE} does not exist. Creating filepath...', fg='yellow')
+            os.mkdir(CONFIG_PATH)
+            with open(f'{CONFIG_PATH}/{CONFIG_FILE}', 'a') as writer:
+                writer.writelines('Hello, World!')
+                #TODO: Complete writing the initial config file and then open to edit
+        #TODO: Add else statement to open config file if it does indeed exist already
+
 
 
 # Add command for sanitizing URLs
@@ -39,7 +79,7 @@ def sanitize(url):
 # Add command for expanding URL shortener URLs
 @cli.command('unshorten')
 @click.argument('short_url')
-def decode_unshorten(short_url):
+def unshorten(short_url):
     """Expands URL shortener URLs.
 
     API limit of 10 requests/hour for novel URLs,
@@ -54,9 +94,10 @@ def decode_unshorten(short_url):
     if usage_count > 0:
         click.secho(f'Current usage: {usage_count}. Cannot exceed 10/hour')
     elif usage_count >= 7:
-        click.secho(f'WARNING: Usage count at {usage_count}', fg='orange')
+        click.secho(f'WARNING: Usage count at {usage_count}', fg='yellow')
     elif usage_count > 10:
         click.secho(f'Usage count at {usage_count}. Usage Exceeded. Wait 60 minutes', fg='red')
+
 
 # Add decoder command group with subcommands
 @click.group()
@@ -100,6 +141,5 @@ def decode_base64(base64_string):
     decoded_base64 = str(base64.b64decode(base64_string), 'utf-8')
     click.echo('Decoded String: ', nl=False)
     click.secho(decoded_base64, fg='green')
-
 
 
