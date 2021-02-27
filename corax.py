@@ -1,13 +1,16 @@
 import base64
 import os
+import shutil
 import urllib.parse
 import click
 import requests
+import yaml
 
 
-APP_NAME = 'corax'
-CONFIG_FILE = 'config.yaml'
-CONFIG_PATH = click.get_app_dir(APP_NAME)
+app_name = 'corax'
+config_file = 'config.yaml'
+config_path = click.get_app_dir(app_name)
+config_filepath = f'{config_path}/{config_file}'
 
 # Create the toplevel command group
 @click.group()
@@ -26,11 +29,6 @@ def cli():
 
 # Add command to allow configuration of corax
 @cli.command('config')
-@click.option('--virustotal', '-v', help='VirusTotal API key.')
-@click.option('--abuseip', '-a', help='AbuseIPDB API key.')
-@click.option('--urlscan', '-u', help='URLScan.io API key.')
-@click.option('--hibp', '-h', help='HaveIBeenPwned API key.')
-@click.option('--emailrep', '-e', help='EmailRep.io API key.')
 def configure_corax(**kwargs):
     """Configure corax.
 
@@ -38,25 +36,14 @@ def configure_corax(**kwargs):
     other configurations to function correctly. Invoking
     corax config enables configurations to be set.
     """
-    if kwargs['virustotal']:
-        pass
-    elif kwargs['abuseip']:
-        pass
-    elif kwargs['urlscan']:
-        pass
-    elif kwargs['hibp']:
-        pass
-    elif kwargs['emailrep']:
-        pass
-    else:
-        if not os.path.isfile(f'{CONFIG_PATH}/{CONFIG_FILE}'):
-            click.secho(f'{CONFIG_PATH}/{CONFIG_FILE} does not exist. Creating filepath...', fg='yellow')
-            os.mkdir(CONFIG_PATH)
-            with open(f'{CONFIG_PATH}/{CONFIG_FILE}', 'a') as writer:
-                writer.writelines('Hello, World!')
-                #TODO: Complete writing the initial config file and then open to edit
-        #TODO: Add else statement to open config file if it does indeed exist already
-
+    if not os.path.isfile(config_filepath):
+            click.secho(f'{config_filepath} does not exist. Creating filepath...', fg='yellow')
+            os.mkdir(config_path)
+            example_config_filepath = f'{os.getcwd()}/{config_file}'
+            if os.path.isfile(example_config_filepath):
+                shutil.copy(example_config_filepath, config_filepath)
+    
+    click.edit(filename=config_filepath)
 
 
 # Add command for sanitizing URLs
