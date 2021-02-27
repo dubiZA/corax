@@ -5,8 +5,9 @@ setup(
     version='0.0.1',
     py_modules=['corax'],
     install_requires=[
-        'Click',
-        'Requests'
+        'click',
+        'requests',
+        'pyyaml'
     ],
     entry_points='''
         [console_scripts]
