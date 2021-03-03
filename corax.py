@@ -1,4 +1,5 @@
 import base64
+import ipaddress
 import os
 import re
 import shutil
@@ -40,7 +41,6 @@ rex_ipv6 = (
 )
 rex_url = r'(?:[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]\.){1,127}[a-z]{2,63}'
 rex_email = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-# rex_hash = ''
 
 # Create the toplevel command group
 @click.group()
@@ -114,6 +114,29 @@ def unshorten(short_url):
         click.secho(f'WARNING: Usage count at {usage_count}', fg='yellow')
     elif usage_count > 10:
         click.secho(f'Usage count at {usage_count}. Usage Exceeded. Wait 60 minutes', fg='red')
+
+
+# Add command and logic for checking reputation of various observable types
+@cli.command()
+@click.argument('observable')
+def reputation(observable):
+    """Checks reputation of user provided obervables."""
+    #TODO: Add some type of check for hashes and files
+    observable = observable.strip()
+    
+    if re.match(rex_ipv4, observable):
+        print(ipaddress.IPv4Address(observable).is_global)
+    elif re.match(rex_ipv6, observable):
+        print('ipv6')
+    elif re.match(rex_email, observable):
+        print('email')
+    elif re.search(rex_url,observable):
+        print('url')
+    else:
+        click.secho(
+            'Invalid observable type. IP, email or URL only.',
+            fg='yellow'
+            )
 
 
 # Add decoder command group with subcommands
