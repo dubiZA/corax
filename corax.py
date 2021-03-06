@@ -1,12 +1,15 @@
 import base64
-import ipaddress
+from ipaddress import IPv4Address
 import os
 import re
 import shutil
 import urllib.parse
+
 import click
 import requests
 import yaml
+
+import validators
 
 
 # App config vars
@@ -41,6 +44,7 @@ rex_ipv6 = (
 )
 rex_url = r'(?:[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]\.){1,127}[a-z]{2,63}'
 rex_email = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+
 
 # Create the toplevel command group
 @click.group()
@@ -78,7 +82,7 @@ def configure_corax():
 
 # Add command for sanitizing URLs
 @cli.command()
-@click.argument('url')
+@click.argument('url', type=validators.URL())
 def sanitize(url):
     """Sanitizes provided URLs.
 
@@ -95,7 +99,7 @@ def sanitize(url):
 
 # Add command for expanding URL shortener URLs
 @cli.command('unshorten')
-@click.argument('short_url')
+@click.argument('short_url', type=validators.URL())
 def unshorten(short_url):
     """Expands URL shortener URLs.
 
@@ -117,26 +121,54 @@ def unshorten(short_url):
 
 
 # Add command and logic for checking reputation of various observable types
-@cli.command()
-@click.argument('observable')
-def reputation(observable):
-    """Checks reputation of user provided obervables."""
-    #TODO: Add some type of check for hashes and files
-    observable = observable.strip()
-    
-    if re.match(rex_ipv4, observable):
-        print(ipaddress.IPv4Address(observable).is_global)
-    elif re.match(rex_ipv6, observable):
-        print('ipv6')
-    elif re.match(rex_email, observable):
-        print('email')
-    elif re.search(rex_url,observable):
-        print('url')
-    else:
-        click.secho(
-            'Invalid observable type. IP, email or URL only.',
-            fg='yellow'
-            )
+@click.group()
+def reputation():
+    """Checks reputation of various observable types"""
+    pass
+
+
+cli.add_command(reputation)
+
+@reputation.command('ip')
+@click.argument('ip_address', type=validators.IPAddress())
+def rep_ip(ip_address):
+    pass
+
+
+# @cli.command()
+# @click.option('--ip', type=validators.IPAddress())
+# @click.option('--url', type=validators.URL())
+# @click.option('--email', type=validators.EmailAddress())
+# def reputation(**kwargs):
+#     """Checks reputation of user provided obervables."""
+#     #TODO: Add some type of check for hashes and files
+#     # observable = observable.strip()
+#     # with open(config_filepath, 'r') as config_file:
+#     #     data = yaml.load(config_file, Loader=yaml.FullLoader)
+#     # vt_key = data['VIRUSTOTAL']
+#     # vt_base_url = 'https://www.virustotal.com/api/v3'
+#     # vt_header = {'x-apikey': vt_key}
+
+#     # if re.match(rex_ipv4, observable):
+#     #     print(IPv4Address(observable).is_global)
+#     #     if IPv4Address(observable).is_global:
+#     #         response = requests.get(
+#     #             f'{vt_base_url}/ip_addresses/{observable}',
+#     #             headers=vt_header
+#     #         )
+#     #         print(response.json()['data']['attributes']['reputation'])
+#     # elif re.match(rex_ipv6, observable):
+#     #     print('ipv6')
+#     # elif re.match(rex_email, observable):
+#     #     print('email')
+#     # elif re.search(rex_url,observable):
+#     #     print('url')
+#     # else:
+#     #     click.secho(
+#     #         'Invalid observable type. IP, email or URL only.',
+#     #         fg='yellow'
+#     #         )
+#     print('oh yeah')
 
 
 # Add decoder command group with subcommands
@@ -154,7 +186,7 @@ def decode():
 cli.add_command(decode)
 
 @decode.command('proofpoint')
-@click.argument('url')
+@click.argument('url', type=validators.URL())
 def decode_proofpoint(url):
     encoded_url = {
         'urls': [url]
@@ -168,7 +200,7 @@ def decode_proofpoint(url):
 
 
 @decode.command('url')
-@click.argument('url')
+@click.argument('url', type=validators.URL())
 def decode_url(url):
     decoded_url = urllib.parse.unquote_plus(url)
     click.echo('Decoded URL: ', nl=False)
