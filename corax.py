@@ -1,5 +1,6 @@
 import base64
 from ipaddress import IPv4Address
+import json
 import os
 import re
 import shutil
@@ -17,6 +18,9 @@ app_name = 'corax'
 config_file = 'config.yaml'
 config_path = click.get_app_dir(app_name)
 config_filepath = f'{config_path}/{config_file}'
+
+with open(config_filepath, 'r') as config:
+    api_keys = yaml.safe_load(config)
 
 # Set up rex objects
 rex_ipv4 = (
@@ -132,43 +136,45 @@ cli.add_command(reputation)
 @reputation.command('ip')
 @click.argument('ip_address', type=validators.IPAddress())
 def rep_ip(ip_address):
+    vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
+    vt_response = requests.get(
+        f'https://www.virustotal.com/api/v3/ip_addresses/{ip_address}',
+        headers=vt_headers
+    )
+    vt_response = vt_response.json()['data']['attributes']
+
+    rep_results = {
+        'whois_summary': {
+            'asn': vt_response['asn'],
+            'as_owner': vt_response['as_owner'],
+            'regional_internet_registry': vt_response['regional_internet_registry'],
+            'network_cidr': vt_response['network'] ,
+            'country': vt_response['country'],
+        },
+        'virus_total_summary': {
+            'reputation': vt_response['reputation'],
+            'community_votes': {
+                'harmless': vt_response['total_votes']['harmless'],
+                'malicious': vt_response['total_votes']['malicious'],
+            },
+            'last_analysis_stats': vt_response['last_analysis_stats'],
+            'gui_link': f'https://www.virustotal.com/gui/ip-address/{ip_address}/detection',
+        },
+    }
+
+    click.echo_via_pager(json.dumps(rep_results, indent=4))
+
+
+@reputation.command('email')
+@click.argument('email_address', type=validators.EmailAddress())
+def rep_email(email_address):
     pass
 
 
-# @cli.command()
-# @click.option('--ip', type=validators.IPAddress())
-# @click.option('--url', type=validators.URL())
-# @click.option('--email', type=validators.EmailAddress())
-# def reputation(**kwargs):
-#     """Checks reputation of user provided obervables."""
-#     #TODO: Add some type of check for hashes and files
-#     # observable = observable.strip()
-#     # with open(config_filepath, 'r') as config_file:
-#     #     data = yaml.load(config_file, Loader=yaml.FullLoader)
-#     # vt_key = data['VIRUSTOTAL']
-#     # vt_base_url = 'https://www.virustotal.com/api/v3'
-#     # vt_header = {'x-apikey': vt_key}
-
-#     # if re.match(rex_ipv4, observable):
-#     #     print(IPv4Address(observable).is_global)
-#     #     if IPv4Address(observable).is_global:
-#     #         response = requests.get(
-#     #             f'{vt_base_url}/ip_addresses/{observable}',
-#     #             headers=vt_header
-#     #         )
-#     #         print(response.json()['data']['attributes']['reputation'])
-#     # elif re.match(rex_ipv6, observable):
-#     #     print('ipv6')
-#     # elif re.match(rex_email, observable):
-#     #     print('email')
-#     # elif re.search(rex_url,observable):
-#     #     print('url')
-#     # else:
-#     #     click.secho(
-#     #         'Invalid observable type. IP, email or URL only.',
-#     #         fg='yellow'
-#     #         )
-#     print('oh yeah')
+@reputation.command('url')
+@click.argument('url', type=validators.URL())
+def rep_url(url):
+    pass
 
 
 # Add decoder command group with subcommands
@@ -213,5 +219,3 @@ def decode_base64(base64_string):
     decoded_base64 = str(base64.b64decode(base64_string), 'utf-8')
     click.echo('Decoded String: ', nl=False)
     click.secho(decoded_base64, fg='green')
-
-
