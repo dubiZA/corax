@@ -7,6 +7,7 @@ class IPAddress(click.ParamType):
     name = 'ip_address'
 
     def convert(self, value, param, ctx):
+        value = value.strip()
         self.rex_ipv4 = (
         r'''^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(  
         25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(  
@@ -47,6 +48,7 @@ class URL(click.ParamType):
 
     def convert(self, value, param, ctx):
         if not isinstance(value, tuple):
+            value = value.strip()
             value = urlparse.urlparse(value)
             if value.scheme not in ('http', 'https'):
                 self.fail(
@@ -62,6 +64,7 @@ class EmailAddress(click.ParamType):
     name = 'email_address'
 
     def convert(self, value, param, ctx):
+        value = value.strip()
         self.rex_email = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
         if not isinstance(value, tuple):
             if not re.match(self.rex_email, value):

@@ -8,6 +8,7 @@ import urllib.parse
 
 import click
 import requests
+import tldextract
 import yaml
 
 import validators
@@ -174,7 +175,43 @@ def rep_email(email_address):
 @reputation.command('url')
 @click.argument('url', type=validators.URL())
 def rep_url(url):
-    pass
+    unparsed_url = url.geturl()
+    fqdn = url.netloc
+    pqdn = tldextract.extract(fqdn).registered_domain
+    # vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
+    # vt_analysis = requests.post(
+    #     f'https://www.virustotal.com/api/v3/urls',
+    #     headers=vt_headers,
+    #     data=payload
+    # )
+    # url_id = vt_analysis.json()['data']['id']
+    # vt_response = requests.get(
+    #     f'https://www.virustotal.com/api/v3/analyses/{url_id}',
+    #     headers=vt_headers
+    # )
+
+    # rep_results = {
+    #     'whois_summary': {
+    #         'asn': vt_response['asn'],
+    #         'as_owner': vt_response['as_owner'],
+    #         'regional_internet_registry': vt_response['regional_internet_registry'],
+    #         'network_cidr': vt_response['network'] ,
+    #         'country': vt_response['country'],
+    #     },
+    #     'virus_total_summary': {
+    #         'reputation': vt_response['reputation'],
+    #         'community_votes': {
+    #             'harmless': vt_response['total_votes']['harmless'],
+    #             'malicious': vt_response['total_votes']['malicious'],
+    #         },
+    #         'last_analysis_stats': vt_response['last_analysis_stats'],
+    #         'gui_link': f'https://www.virustotal.com/gui/ip-address/{ip_address}/detection',
+    #     },
+    # }
+    # print(vt_response.json())
+    # click.echo_via_pager(json.dumps(vt_response.json(), indent=4))
+
+    print(pqdn)
 
 
 # Add decoder command group with subcommands
