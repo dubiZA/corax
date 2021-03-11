@@ -20,8 +20,6 @@ config_file = 'config.yaml'
 config_path = click.get_app_dir(app_name)
 config_filepath = f'{config_path}/{config_file}'
 
-with open(config_filepath, 'r') as config:
-    api_keys = yaml.safe_load(config)
 
 # Set up rex objects
 rex_ipv4 = (
@@ -127,16 +125,19 @@ def unshorten(short_url):
 
 # Add command and logic for checking reputation of various observable types
 @click.group()
-def reputation():
+def analyze():
     """Checks reputation of various observable types"""
     pass
 
 
-cli.add_command(reputation)
+cli.add_command(analyze)
 
-@reputation.command('ip')
+@analyze.command('ip')
 @click.argument('ip_address', type=validators.IPAddress())
-def rep_ip(ip_address):
+def analyze_ip(ip_address):
+    with open(config_filepath, 'r') as config:
+        api_keys = yaml.safe_load(config)
+
     vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
     vt_response = requests.get(
         f'https://www.virustotal.com/api/v3/ip_addresses/{ip_address}',
@@ -166,18 +167,25 @@ def rep_ip(ip_address):
     click.echo_via_pager(json.dumps(rep_results, indent=4))
 
 
-@reputation.command('email')
+@analyze.command('email')
 @click.argument('email_address', type=validators.EmailAddress())
-def rep_email(email_address):
+def analyze_email(email_address):
     pass
 
 
-@reputation.command('url')
+@analyze.command('url')
 @click.argument('url', type=validators.URL())
-def rep_url(url):
+def analyze_url(url):
+    with open(config_filepath, 'r') as config:
+        api_keys = yaml.safe_load(config)
+        
     unparsed_url = url.geturl()
     fqdn = url.netloc
     pqdn = tldextract.extract(fqdn).registered_domain
+
+    #TODO: Add urlscan.io check, get domain registration info
+    #       for the submitted URL, build out new data structure
+    #       for returning the results of the several scans, etc.
     # vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
     # vt_analysis = requests.post(
     #     f'https://www.virustotal.com/api/v3/urls',
