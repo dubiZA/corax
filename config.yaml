@@ -10,3 +10,7 @@ ABUSEIP: Replace with AbuseIP DB API key
 URLSCAN: Replace with URLScan.io API key
 HIBP: Replace with HaveIBeenPwned API key
 EMAILREP: Replace with EmailRep.io API key
+
+
+#TODO: Add app wide configurations
+#  - Set user-agent to use

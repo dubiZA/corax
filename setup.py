@@ -7,7 +7,8 @@ setup(
     install_requires=[
         'click',
         'requests',
-        'pyyaml'
+        'pyyaml',
+        'tldextract'
     ],
     entry_points='''
         [console_scripts]

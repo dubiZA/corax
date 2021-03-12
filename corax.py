@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+import time
 import urllib.parse
 
 import click
@@ -183,21 +184,37 @@ def analyze_url(url):
     fqdn = url.netloc
     pqdn = tldextract.extract(fqdn).registered_domain
 
-    #TODO: Add urlscan.io check, get domain registration info
-    #       for the submitted URL, build out new data structure
-    #       for returning the results of the several scans, etc.
-    # vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
-    # vt_analysis = requests.post(
-    #     f'https://www.virustotal.com/api/v3/urls',
-    #     headers=vt_headers,
-    #     data=payload
-    # )
-    # url_id = vt_analysis.json()['data']['id']
-    # vt_response = requests.get(
-    #     f'https://www.virustotal.com/api/v3/analyses/{url_id}',
-    #     headers=vt_headers
-    # )
+    #TODO: Analyze URL with VT
+    payload = {'url': unparsed_url}
+    vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
+    vt_analysis = requests.post(
+        f'https://www.virustotal.com/api/v3/urls',
+        headers=vt_headers,
+        data=payload
+    )
+    # Pause execution to allow VT to complete analysis
+    time.sleep(1)
 
+    url_id = vt_analysis.json()['data']['id']
+    vt_response = requests.get(
+        f'https://www.virustotal.com/api/v3/analyses/{url_id}',
+        headers=vt_headers
+    )
+
+    url_id2 = vt_response.json()['meta']['url_info']['id']
+    vt_results = requests.get(
+        f'https://www.virustotal.com/api/v3/urls/{url_id2}',
+        headers=vt_headers
+    )
+    print(url_id)
+    print(url_id2)
+    print(json.dumps(vt_results.json(), indent=4))
+
+    #TODO: Analyze URL with URLScan.io
+    #TODO: Analyze domain
+    #TODO: Analyze IP
+
+    #TODO: Build report and return it
     # rep_results = {
     #     'whois_summary': {
     #         'asn': vt_response['asn'],
@@ -218,8 +235,6 @@ def analyze_url(url):
     # }
     # print(vt_response.json())
     # click.echo_via_pager(json.dumps(vt_response.json(), indent=4))
-
-    print(pqdn)
 
 
 # Add decoder command group with subcommands
