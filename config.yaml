@@ -1,6 +1,8 @@
 # This is corax's configuration file. corax expects to find this configuration file
-# in ~/.config/corax/config.yaml. If the file does not exist in that location, corax
-# will attempt to create it for you upon invokation of `corax config`.
+# based on the Python Click package's get_app_dir() method (see docs for your system
+# https://click.palletsprojects.com/en/7.x/api/#click.get_app_dir). If the file
+# does not exist in that location, corax will attempt to create it for you upon
+# invokation of `corax config`.
 # The corax configuration file is written in YAML. Please make sure to follow YAML
 # syntax to ensure successful operation.
 #
@@ -13,4 +15,4 @@ EMAILREP: Replace with EmailRep.io API key
 
 
 #TODO: Add app wide configurations
-#  - Set user-agent to use
+#  - Set user-agent to use for web based requests

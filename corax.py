@@ -21,35 +21,6 @@ config_file = 'config.yaml'
 config_path = click.get_app_dir(app_name)
 config_filepath = f'{config_path}/{config_file}'
 
-
-# Set up rex objects
-rex_ipv4 = (
-    r'''^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(  
-    25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(  
-    25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(  
-    25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$'''
-)
-rex_ipv6 = (
-    r'''(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}| 
-    ([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:) 
-    {1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1 
-    ,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4} 
-    :){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{ 
-    1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA 
-    -F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a 
-    -fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0 
-    -9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0, 
-    4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1} 
-    :){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9 
-    ])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0 
-    -9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4] 
-    |1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4] 
-    |1{0,1}[0-9]){0,1}[0-9]))'''
-)
-rex_url = r'(?:[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]\.){1,127}[a-z]{2,63}'
-rex_email = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-
-
 # Create the toplevel command group
 @click.group()
 @click.version_option()
@@ -185,31 +156,50 @@ def analyze_url(url):
     pqdn = tldextract.extract(fqdn).registered_domain
 
     #TODO: Analyze URL with VT
-    payload = {'url': unparsed_url}
+    encoded_url = base64.urlsafe_b64encode(unparsed_url.encode()).decode().strip('=')
     vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
-    vt_analysis = requests.post(
-        f'https://www.virustotal.com/api/v3/urls',
-        headers=vt_headers,
-        data=payload
-    )
-    # Pause execution to allow VT to complete analysis
-    time.sleep(1)
-
-    url_id = vt_analysis.json()['data']['id']
-    vt_response = requests.get(
-        f'https://www.virustotal.com/api/v3/analyses/{url_id}',
+    vt_url_search = requests.get(
+        f'https://www.virustotal.com/api/v3/urls/{encoded_url}',
         headers=vt_headers
     )
+    print(json.dumps(vt_url_search.json(), indent=4))
 
-    url_id2 = vt_response.json()['meta']['url_info']['id']
-    vt_results = requests.get(
-        f'https://www.virustotal.com/api/v3/urls/{url_id2}',
-        headers=vt_headers
-    )
-    print(url_id)
-    print(url_id2)
-    print(json.dumps(vt_results.json(), indent=4))
+    if 'error' in vt_url_search.json():
+        payload = {'url': unparsed_url}
+        vt_analysis = requests.post(
+            f'https://www.virustotal.com/api/v3/urls',
+            headers=vt_headers,
+            data=payload
+        )
+        # Pause execution to allow VT to complete analysis
+        time.sleep(0.5)
 
+        url_id = vt_analysis.json()['data']['id']
+        vt_response = requests.get(
+            f'https://www.virustotal.com/api/v3/analyses/{url_id}',
+            headers=vt_headers
+        )
+
+        url_id2 = vt_response.json()['meta']['url_info']['id']
+        vt_results = requests.get(
+            f'https://www.virustotal.com/api/v3/urls/{url_id2}',
+            headers=vt_headers
+        )
+        print(json.dumps(vt_results.json(), indent=4))
+
+        # Stuff to pull out:
+        # -Outgoing Links
+        # -Last Analysis Stats
+        # -Last Finaly URL
+        # -Last HTTP response code
+        # -Reputation
+        # -Categories
+        # -Times Submitted
+        # -Total Votes
+        # -
+        # -
+        # -
+    # 
     #TODO: Analyze URL with URLScan.io
     #TODO: Analyze domain
     #TODO: Analyze IP
