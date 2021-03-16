@@ -117,7 +117,7 @@ def analyze_ip(ip_address):
     )
     vt_response = vt_response.json()['data']['attributes']
 
-    rep_results = {
+    analysis_results = {
         'whois_summary': {
             'asn': vt_response['asn'],
             'as_owner': vt_response['as_owner'],
@@ -132,11 +132,11 @@ def analyze_ip(ip_address):
                 'malicious': vt_response['total_votes']['malicious'],
             },
             'last_analysis_stats': vt_response['last_analysis_stats'],
-            'gui_link': f'https://www.virustotal.com/gui/ip-address/{ip_address}/detection',
+            'vt_gui_link': f'https://www.virustotal.com/gui/ip-address/{ip_address}/detection',
         },
     }
 
-    click.echo_via_pager(json.dumps(rep_results, indent=4))
+    click.echo_via_pager(json.dumps(analysis_results, indent=4))
 
 
 @analyze.command('email')
@@ -158,13 +158,13 @@ def analyze_url(url):
     #TODO: Analyze URL with VT
     encoded_url = base64.urlsafe_b64encode(unparsed_url.encode()).decode().strip('=')
     vt_headers = {'x-apikey': api_keys['VIRUSTOTAL']}
-    vt_url_search = requests.get(
+    vt_response = requests.get(
         f'https://www.virustotal.com/api/v3/urls/{encoded_url}',
         headers=vt_headers
     )
-    print(json.dumps(vt_url_search.json(), indent=4))
+    # print(json.dumps(vt_response.json(), indent=4))
 
-    if 'error' in vt_url_search.json():
+    if 'error' in vt_response.json():
         payload = {'url': unparsed_url}
         vt_analysis = requests.post(
             f'https://www.virustotal.com/api/v3/urls',
@@ -172,21 +172,28 @@ def analyze_url(url):
             data=payload
         )
         # Pause execution to allow VT to complete analysis
-        time.sleep(0.5)
+        time.sleep(1)
 
-        url_id = vt_analysis.json()['data']['id']
-        vt_response = requests.get(
-            f'https://www.virustotal.com/api/v3/analyses/{url_id}',
-            headers=vt_headers
-        )
-
-        url_id2 = vt_response.json()['meta']['url_info']['id']
-        vt_results = requests.get(
-            f'https://www.virustotal.com/api/v3/urls/{url_id2}',
+        vt_url_search = requests.get(
+            f'https://www.virustotal.com/api/v3/urls/{encoded_url}',
             headers=vt_headers
         )
         print(json.dumps(vt_results.json(), indent=4))
 
+    vt_response = vt_response.json()['data']['attributes']
+    vt_results = {
+        'last_final_url': vt_response['last_final_url'],
+        'last_http_response_code': vt_response['last_http_response_code'] if 'last_http_response_code' in vt_response else '',
+        'last_analysis_stats': vt_response['last_analysis_stats'],
+        'threat_names': vt_response['threat_names'],
+        'reputation': vt_response['reputation'],
+        'total_votes': vt_response['total_votes'],
+        'times_submitted': vt_response['times_submitted'],
+        'outgoing_links': vt_response['outgoing_links'] if 'outgoing_links' in vt_response else '',
+        'vt_gui_link': f'https://www.virustotal.com/gui/url/{encoded_url}/detection'
+    }
+
+    click.echo_via_pager(json.dumps(vt_results, indent=4))
         # Stuff to pull out:
         # -Outgoing Links
         # -Last Analysis Stats
