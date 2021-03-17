@@ -1,6 +1,9 @@
 # corax
 
-## Python Quick Start
+## Quick Start
+corax can be installed either using Python to set up a virtual env and installing corax with Pip or with Docker.
+
+### Using Python/Pip
 To install corax, follow these steps:
 1. Clone the repo locally `git clone https://github.com/dubiZA/corax.git`
 2. Change directories to corax root directory
@@ -10,7 +13,7 @@ To install corax, follow these steps:
 6. Configure corax `corax config` if you have API keys to supported services (only VirusTotal with limited functionality at present) 
 7. Start using. Run `corax --help` for a list of commands/subcommands
 
-## Docker Quick Start
+### Docker
 To run corax in Docker, follow these steps:
 1. Clone the repo locally `git clone https://github.com/dubiZA/corax.git`
 2. Change directories to corax root directory
