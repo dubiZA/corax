@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# My VSC Exlusions
+# My Exclusions
 settings.json
+config/

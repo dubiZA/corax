@@ -46,11 +46,12 @@ def configure_corax():
     corax config enables configurations to be set.
     """
     if not os.path.isfile(config_filepath):
-            click.secho(f'{config_filepath} does not exist. Creating filepath...', fg='yellow')
+        click.secho(f'{config_filepath} does not exist. Creating filepath...', fg='yellow')
+        if not os.path.isdir(config_path):
             os.mkdir(config_path)
-            example_config_filepath = f'{os.getcwd()}/{config_file}'
-            if os.path.isfile(example_config_filepath):
-                shutil.copy(example_config_filepath, config_filepath)
+        example_config_filepath = f'{os.getcwd()}/{config_file}'
+        if os.path.isfile(example_config_filepath):
+            shutil.copy(example_config_filepath, config_filepath)
     
     click.edit(filename=config_filepath)
 
@@ -172,13 +173,14 @@ def analyze_url(url):
             data=payload
         )
         # Pause execution to allow VT to complete analysis
-        time.sleep(1)
+        click.secho('Waiting for VirusTotal to complete Analysis', fg='yellow')
+        time.sleep(15)
 
         vt_url_search = requests.get(
             f'https://www.virustotal.com/api/v3/urls/{encoded_url}',
             headers=vt_headers
         )
-        print(json.dumps(vt_results.json(), indent=4))
+        # print(json.dumps(vt_results.json(), indent=4))
 
     vt_response = vt_response.json()['data']['attributes']
     vt_results = {

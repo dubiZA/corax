@@ -1,6 +1,6 @@
 FROM python:3.9.2-alpine
 
-RUN apk update && apk upgrade && apk add bash && mkdir /corax
+RUN apk update && apk upgrade && apk add bash && mkdir /corax && mkdir -p /root/.config/corax
 WORKDIR /corax
 COPY . .
 
