@@ -98,7 +98,7 @@ def unshorten(short_url):
 # Add command and logic for checking reputation of various observable types
 @click.group()
 def analyze():
-    """Checks reputation of various observable types"""
+    """Checks reputation of various observable types."""
     pass
 
 
