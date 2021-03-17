@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  corax:
+    build: .
+    image: corax
+    volumes:
+      - ./docker_store:/root/.config/corax
+    stdin_open: true
+    tty: true

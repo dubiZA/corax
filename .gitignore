@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # My Exclusions
-settings.json
-config/
+.vscode/
+docker_store/

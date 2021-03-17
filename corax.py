@@ -46,7 +46,7 @@ def configure_corax():
     corax config enables configurations to be set.
     """
     if not os.path.isfile(config_filepath):
-        click.secho(f'{config_filepath} does not exist. Creating filepath...', fg='yellow')
+        click.secho(f'{config_filepath} does not exist. Creating...', fg='yellow')
         if not os.path.isdir(config_path):
             os.mkdir(config_path)
         example_config_filepath = f'{os.getcwd()}/{config_file}'
