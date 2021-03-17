@@ -17,6 +17,7 @@ To install corax, follow these steps:
 To run corax in Docker, follow these steps:
 1. Clone the repo locally `git clone https://github.com/dubiZA/corax.git`
 2. Change directories to corax root directory
-3. Run `docker-compose run --rm corax`
+3. Run `docker build -t corax --rm .`
+4. Run `docker-compose run --rm corax`
 5. Configure corax `corax config` if you have API keys to supported services (only VirusTotal with limited functionality at present)
 6. Start using. Run `corax --help` for a list of commands/subcommands
