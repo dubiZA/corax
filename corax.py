@@ -67,10 +67,14 @@ def sanitize(url):
     safe for use in applications that auto create
     hyperlinks from URLS (email and IM clients, etc.)
     """
+    url = url.geturl()
     no_scheme = url.replace('http', 'hxxp')
     no_domains = no_scheme.replace('.', '[.]')
-    click.echo('Sanitized URL: ', nl=False)
-    click.secho(no_domains, fg='green')
+    result = {
+        'original_url': url,
+        'sanitized_url': no_domains
+    }
+    click.echo_via_pager(json.dumps(result, indent=4))
 
 
 # Add command for expanding URL shortener URLs
@@ -83,17 +87,8 @@ def unshorten(short_url):
     however, previously unshortened URLs have no
     API limit.
     """
-    response = requests.get(f'https://unshorten.me/json/{short_url}')
-    resolved_url = response.json()['resolved_url']
-    usage_count = response.json()['usage_count']
-    click.echo('Unshortened URL: ', nl=False)
-    click.secho(resolved_url, fg='green')
-    if usage_count > 0:
-        click.secho(f'Current usage: {usage_count}. Cannot exceed 10/hour')
-    elif usage_count >= 7:
-        click.secho(f'WARNING: Usage count at {usage_count}', fg='yellow')
-    elif usage_count > 10:
-        click.secho(f'Usage count at {usage_count}. Usage Exceeded. Wait 60 minutes', fg='red')
+    response = requests.get(f'https://unshorten.me/json/{short_url.geturl()}')
+    click.echo_via_pager(json.dumps(response.json(), indent=4))
 
 
 # Add command and logic for checking reputation of various observable types
@@ -254,14 +249,13 @@ cli.add_command(decode)
 @click.argument('url', type=validators.URL())
 def decode_proofpoint(url):
     encoded_url = {
-        'urls': [url]
+        'urls': [url.geturl()]
     }
     response = requests.post(
         'https://tap-api-v2.proofpoint.com/v2/url/decode',
         json=encoded_url
         )
-    click.echo('Proofpointed Decoded URL: ', nl=False)
-    click.secho(response.json()['urls'][0]['decodedUrl'], fg='green')
+    click.echo_via_pager(json.dumps(response.json(), indent=4))
 
 
 @decode.command('url')
